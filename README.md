@@ -83,9 +83,9 @@ The lab is structured as a series of documented phases, each building on the pre
 
 | Phase | Title | Status |
 | --- | --- | --- |
-| [Architecture](architecture/stack_architecture.md) | Design stack architecture & component selection | 🔄 In progress |
-| [Phase 1](phases/phase-1-environment-setup.md) | Environment preparation & Docker configuration | 🔄 In progress |
-| [Phase 2](phases/phase-2-service-configuration.md) | Service configuration (Prometheus, Promtail, Loki) | 🔜 Planned |
+| [Architecture](architecture/stack_architecture.md) | Design stack architecture & component selection | ✅ Complete |
+| [Phase 1](phases/phase-1-environment-setup.md) | Environment preparation & Docker configuration | ✅ Complete |
+| [Phase 2](phases/phase-2-service-configuration.md) | Service configuration (Prometheus, Promtail, Loki) | 🔄 In progress |
 | [Phase 3](phases/phase-3-docker-compose.md) | Docker Compose orchestration & deployment | 🔜 Planned |
 | [Phase 4](phases/phase-4-grafana-setup.md) | Grafana data sources & dashboard configuration | 🔜 Planned |
 | [Phase 5](phases/phase-5-analysis.md) | Performance analysis & component diagnostics | 🔜 Planned |
