@@ -262,6 +262,20 @@ The original orchestration file specified the `grafana/loki:latest` tag. Docker 
 
 > **Lesson learned:** Avoid `:latest` tags for stateful services with versioned storage schemas. Pin explicit versions and document the rationale in the compose file.
 
+## Discovery 2 — Permission Collision in Loki
+
+**Issue:** The loki container was stuck in a continuous crash loop
+
+**Analysis:** Diagnostic logs (`docker logs loki`) revealed the following error:
+
+```
+mkdir /tmp/loki/rules: permission denied
+```
+
+A Root Cause Analysis (RCA) identified this as a User Identifier (UID) collision. By default, the Docker engine daemon provisioned the persistent volume (loki_data) with host-level root ownership. 
+
+**Resolution:** Modified the container orchestration strategy to explicitly elevate the runtime privileges of the Loki service for this specific environment. The directive `user: "root"` was injected into the `docker-compose.yml`.
+
 ---
 
 ## 6. Final Validation
