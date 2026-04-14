@@ -4,8 +4,9 @@
 
 [![Prometheus](https://img.shields.io/badge/Prometheus-Latest-E6522C?style=flat-square&logo=prometheus&logoColor=white)](#)
 [![Grafana](https://img.shields.io/badge/Grafana-Latest-F46800?style=flat-square&logo=grafana&logoColor=white)](#)
-[![Loki](https://img.shields.io/badge/Loki-Latest-2C3239?style=flat-square&logo=grafana&logoColor=white)](#)
+[![Loki](https://img.shields.io/badge/Loki-2.9.8-2C3239?style=flat-square&logo=grafana&logoColor=white)](#)
 [![Docker Compose](https://img.shields.io/badge/Docker_Compose-Orchestrated-2496ED?style=flat-square&logo=docker&logoColor=white)](#)
+[![Platform](https://img.shields.io/badge/Platform-WSL2%20%2F%20Windows-0078D4?style=flat-square&logo=windows&logoColor=white)](#)
 [![Status](https://img.shields.io/badge/Status-Active%20development-green?style=flat-square)](#)
 [![ISC2](https://img.shields.io/badge/Cert-ISC2%20CC-purple?style=flat-square)](#)
 
@@ -25,12 +26,12 @@ The lab is structured as a series of documented phases, each building on the pre
 
 | Component | Details |
 | --- | --- |
-| Host OS | Ubuntu 24.04 LTS (VMware Virtual Platform) |
-| Container engine | Docker + Docker Compose V2 |
-| Application | WordPress + MySQL 5.7 |
-| Metric collection | Prometheus + cAdvisor (Google) |
-| Log aggregation | Loki + Promtail (Grafana Labs) |
-| Visualization | Grafana (Dashboard ID 193) |
+| Host OS | Windows + WSL2 (Ubuntu) |
+| Container engine | Docker Desktop (WSL2 backend) + Docker Compose V2 |
+| Application | WordPress + MySQL 8.0 |
+| Metric collection | Prometheus + cAdvisor v0.47.0 |
+| Log aggregation | Loki 2.9.8 + Promtail 2.9.8 (pinned for schema compatibility) |
+| Visualization | Grafana (Dashboard ID 14282 — cAdvisor exporter) |
 | Total containers | 7 (application + monitoring stack) |
 
 ---
@@ -40,37 +41,38 @@ The lab is structured as a series of documented phases, each building on the pre
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Docker Compose Network                  │
+│                     (monitoring_network)                    │
 │                                                             │
 │  ┌─────────────┐    ┌─────────────┐                         │
-│  │  WordPress   │    │   MySQL     │   Application Layer     │
-│  │   :8080      │───▶│   :3306     │                         │
-│  └──────┬───────┘    └──────┬──────┘                         │
-│         │                   │                                │
-│  ═══════╪═══════════════════╪══════════════════════════════  │
-│         │                   │                                │
-│  ┌──────▼───────────────────▼──────┐                         │
-│  │           cAdvisor :8081        │   Metric Exposure       │
-│  │   (discovers all containers)    │                         │
-│  └──────────────┬──────────────────┘                         │
-│                 │  scrape /metrics                            │
-│  ┌──────────────▼──────────────────┐                         │
-│  │       Prometheus :9090          │   Metric Storage        │
-│  │   (time-series database)        │                         │
-│  └──────────────┬──────────────────┘                         │
-│                 │                                            │
-│  ┌──────────────▼──────────────────┐                         │
-│  │         Grafana :3000           │   Visualization         │
-│  │   (dashboards + log explorer)   │                         │
-│  └──────────────▲──────────────────┘                         │
-│                 │                                            │
-│  ┌──────────────┴──────────────────┐                         │
-│  │          Loki :3100             │   Log Storage           │
-│  └──────────────▲──────────────────┘                         │
-│                 │                                            │
-│  ┌──────────────┴──────────────────┐                         │
-│  │       Promtail (agent)          │   Log Collection        │
-│  │   (reads Docker log files)      │                         │
-│  └─────────────────────────────────┘                         │
+│  │  WordPress   │    │   MySQL     │   Application Layer    │
+│  │   :8080      │───▶│   :3306     │                        │
+│  └──────┬───────┘    └──────┬──────┘                        │
+│         │                   │                               │
+│  ═══════╪═══════════════════╪═════════════════════════════  │
+│         │                   │                               │
+│  ┌──────▼───────────────────▼──────┐                        │
+│  │           cAdvisor :8081        │   Metric Exposure      │
+│  │   (discovers all containers)    │                        │
+│  └──────────────┬──────────────────┘                        │
+│                 │  scrape /metrics                          │
+│  ┌──────────────▼──────────────────┐                        │
+│  │       Prometheus :9090          │   Metric Storage       │
+│  │   (time-series database)        │                        │
+│  └──────────────┬──────────────────┘                        │
+│                 │                                           │
+│  ┌──────────────▼──────────────────┐                        │
+│  │         Grafana :3000           │   Visualization        │
+│  │   (dashboards + log explorer)   │                        │
+│  └──────────────▲──────────────────┘                        │
+│                 │                                           │
+│  ┌──────────────┴──────────────────┐                        │
+│  │          Loki :3100             │   Log Storage          │
+│  └──────────────▲──────────────────┘                        │
+│                 │                                           │
+│  ┌──────────────┴──────────────────┐                        │
+│  │       Promtail (agent)          │   Log Collection       │
+│  │   (Docker SD via socket)        │                        │
+│  └─────────────────────────────────┘                        │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -84,15 +86,14 @@ The lab is structured as a series of documented phases, each building on the pre
 | Phase | Title | Status |
 | --- | --- | --- |
 | [Architecture](architecture/stack_architecture.md) | Design stack architecture & component selection | ✅ Complete |
-| [Phase 1](phases/phase-1-environment-setup.md) | Environment preparation & Docker configuration | ✅ Complete |
-| [Phase 2](phases/phase-2-service-configuration.md) | Service configuration (Prometheus, Promtail, Loki) | 🔄 In progress |
-| [Phase 3](phases/phase-3-docker-compose.md) | Docker Compose orchestration & deployment | 🔜 Planned |
-| [Phase 4](phases/phase-4-grafana-setup.md) | Grafana data sources & dashboard configuration | 🔜 Planned |
-| [Phase 5](phases/phase-5-analysis.md) | Performance analysis & component diagnostics | 🔜 Planned |
-| [Phase 6](phases/phase-6-alerting.md) | Alert rules & notification channels | 🔜 Planned |
-| [Phase 7](phases/phase-7-hardening.md) | Stack hardening & production best practices | 🔜 Planned |
+| [Phase 1](phases/phase-1-environment-setup.md) | Infrastructure Deployment & Zero-Instrumentation Telemetry | ✅ Complete |
+| [Phase 2](phases/phase-2-telemetry-visualization.md) | Telemetry Visualization & WSL2 Architectural Constraints | ✅ Complete |
+| Phase 3 | Log Pipeline Validation & Cross-Source Correlation | 🔄 In progress |
+| Phase 4 | Performance Analysis & Diagnostic Methodology | 🔜 Planned |
+| Phase 5 | Alert Engineering & Notification Channels | 🔜 Planned |
+| Phase 6 | Stack Hardening & Production Readiness | 🔜 Planned |
 
-> **Note:** Phases 1–5 document the original lab implementation. Phases 6–7 are extensions that elevate the project beyond the academic scope into production-readiness.
+> **Note:** Phases 1–4 document the core observability pipeline. Phases 5–6 are extensions that elevate the project beyond the academic scope into production-readiness.
 
 ---
 
@@ -104,9 +105,9 @@ The lab is structured as a series of documented phases, each building on the pre
 
 **Container-native metric collection** — cAdvisor automatically discovers every running container and exposes CPU, memory, filesystem, and network metrics in Prometheus-compatible format, requiring no application-level instrumentation.
 
-**Centralized log aggregation** — Promtail harvests Docker container logs directly from the host filesystem (`/var/lib/docker/containers`), labels them by container name, and ships them to Loki for indexed storage and ad-hoc querying through Grafana's Explore interface.
+**Centralized log aggregation** — Promtail harvests Docker container logs via Docker service discovery (through `/var/run/docker.sock`), labels them by container name, and ships them to Loki for indexed storage and ad-hoc querying through Grafana's Explore interface.
 
-**Real-time performance dashboards** — A pre-built Grafana dashboard (ID 193) provides immediate visibility into running container count, total CPU usage, memory consumption, and per-container network I/O — all refreshing at 10-second intervals.
+**WSL2-aware query engineering** — PromQL queries have been adapted to compensate for the cgroup namespace constraints imposed by Docker Desktop on WSL2, demonstrating the ability to deliver reliable telemetry across non-trivial virtualization boundaries.
 
 **Incident diagnosis workflow** — The documentation includes a structured 3-step diagnostic methodology: (1) identify anomalies in Prometheus metrics, (2) correlate with Loki logs in the same time window, (3) determine root cause by cross-referencing both data sources.
 
@@ -116,29 +117,29 @@ The lab is structured as a series of documented phases, each building on the pre
 
 | Service | Image | Port | Role |
 | --- | --- | --- | --- |
-| WordPress | `wordpress` | 8080 | Web application (monitored target) |
-| MySQL | `mysql:5.7` | 3306 | Database backend |
-| Prometheus | `prom/prometheus` | 9090 | Time-series metric database |
-| Grafana | `grafana/grafana` | 3000 | Visualization & dashboards |
-| Loki | `grafana/loki` | 3100 | Log aggregation engine |
-| Promtail | `grafana/promtail` | — | Log collection agent |
-| cAdvisor | `gcr.io/cadvisor/cadvisor` | 8081 | Container metric exporter |
+| WordPress | `wordpress:latest` | 8080 | Web application (monitored target) |
+| MySQL | `mysql:8.0` | internal | Database backend (no external port) |
+| Prometheus | `prom/prometheus:latest` | 9090 | Time-series metric database |
+| Grafana | `grafana/grafana:latest` | 3000 | Visualization & dashboards |
+| Loki | `grafana/loki:2.9.8` | 3100 | Log aggregation engine |
+| Promtail | `grafana/promtail:2.9.8` | — | Log collection agent |
+| cAdvisor | `gcr.io/cadvisor/cadvisor:v0.47.0` | 8081 | Container metric exporter |
 
 ---
 
 ## Notable Technical Challenges Solved
 
-**Docker daemon crash from missing Loki plugin** — An initial attempt to configure the Loki logging driver directly in `/etc/docker/daemon.json` prevented the Docker daemon from starting (`plugin "loki" not found`). The solution was to delegate log collection to Promtail instead of the daemon, restoring `daemon.json` to `{}` and using file-based log harvesting.
+**Loki 3.x schema deprecation** — The `grafana/loki:latest` tag pulled the 3.x generation, which enforces `tsdb` index type and `schema v13`, breaking the stable `boltdb-shipper` configuration and causing an immediate container exit. Resolved by pinning both Loki and Promtail to `2.9.8`, the last stable release of the previous generation.
 
-**Docker Compose V1 vs V2 incompatibility** — The legacy `docker-compose` (Python-based V1) failed with `ModuleNotFoundError: No module named 'distutils'` on Python 3.12+. Migration to Docker Compose V2 (`docker-compose-v2` package) resolved the issue and all commands were updated to the `docker compose` (space) syntax.
+**UID/GID permission collision on persistent volumes** — The Loki service entered a crash loop with `mkdir /tmp/loki/rules: permission denied`. Root cause: Docker provisioned the `loki_data` volume with host-level `root` ownership, while the official Loki image runs as an unprivileged internal UID. Resolved by injecting `user: "root"` into the Loki service definition, aligning the container's execution context with the volume's ownership.
 
-**Permission denied on Docker socket** — Non-root execution of `docker compose` failed with `PermissionError(13, 'Permission denied')` on `/var/run/docker.sock`. Resolved by prepending `sudo` to all Docker commands (documented as a conscious decision vs. adding the user to the `docker` group).
+**WSL2 clock drift breaking Prometheus queries** — Prometheus reported 38-second out-of-sync warnings after Windows host sleep states, producing empty Grafana queries due to future-timestamp lookups. Resolved by restarting the Docker Engine from the Windows host, forcing the WSL2 VM to resynchronize its hardware clock (`hwclock`) with the host motherboard.
 
-**IPv6 network failures during image pull** — Docker defaulted to IPv6 connections on the VM, which lacked valid IPv6 connectivity, causing intermittent `connect: network is unreachable` errors. Disabling IPv6 at the OS level via `/etc/sysctl.conf` (`net.ipv6.conf.all.disable_ipv6=1`) forced all traffic through IPv4, permanently resolving download failures.
+**cAdvisor cgroup blindness on WSL2** — WSL2 encapsulates the Docker daemon inside a lightweight VM, preventing cAdvisor from enumerating individual container cgroups. Per-container labels (`Host`, `Container name`) failed to populate. Resolved by shifting from micro-monitoring to a macro-monitoring strategy, rewriting PromQL queries to target the aggregated root cgroup (`id="/docker"` for CPU/memory, `id="/"` for network) with `sum()` aggregations.
 
 ---
 
-## Repository Structure
+## Repository Structure (WIP 🔄)
 
 ```
 docker-monitoring-stack/
@@ -146,6 +147,7 @@ docker-monitoring-stack/
 ├── LICENSE
 ├── README.md
 ├── SECURITY.md
+├── docker-compose.yml
 │
 ├── .github/
 │   ├── CODE_OF_CONDUCT.md
@@ -158,24 +160,19 @@ docker-monitoring-stack/
 ├── architecture/
 │   └── stack_architecture.md
 │
-├── configs/
-│   ├── docker-compose.yml
+├── config/
 │   ├── prometheus/
 │   │   └── prometheus.yml
+│   ├── loki/
+│   │   └── loki-config.yml
 │   ├── promtail/
-│   │   └── config.yml
+│   │   └── promtail-config.yml
 │   └── grafana/
-│       └── dashboards/
-│           └── docker-monitoring.json
+│       └── provisioning/
 │
 ├── phases/
 │   ├── phase-1-environment-setup.md
-│   ├── phase-2-service-configuration.md
-│   ├── phase-3-docker-compose.md
-│   ├── phase-4-grafana-setup.md
-│   ├── phase-5-analysis.md
-│   ├── phase-6-alerting.md
-│   └── phase-7-hardening.md
+│   └── phase-2-telemetry-visualization.md
 │
 └── docs/
     ├── troubleshooting.md
@@ -186,8 +183,10 @@ docker-monitoring-stack/
 
 ## Roadmap
 
-- Phase 6: Configure Prometheus alert rules (`alert.rules.yml`) with notification channels (Slack/email webhooks)
-- Phase 7: Stack hardening — resource limits, Grafana auth, HTTPS reverse proxy, `.env` parameterization
+- Phase 3: End-to-end validation of the log pipeline (Promtail → Loki → Grafana Explore) with LogQL query examples
+- Phase 4: Performance analysis under synthetic WordPress load + documented diagnostic methodology
+- Phase 5: Prometheus alert rules (`alert.rules.yml`) with notification channels (Slack/email webhooks)
+- Phase 6: Stack hardening — resource limits, Grafana auth, HTTPS reverse proxy, `.env` parameterization
 - Future: Integrate Tempo for distributed tracing (completing the third observability pillar)
 - Future: Add Node Exporter for host-level metrics beyond container scope
 
@@ -198,7 +197,7 @@ docker-monitoring-stack/
 ```bash
 # Clone the repository
 git clone https://github.com/alejandroZ345/docker-monitoring-stack.git
-cd docker-monitoring-stack/configs
+cd docker-monitoring-stack
 
 # Deploy the full stack
 docker compose up -d

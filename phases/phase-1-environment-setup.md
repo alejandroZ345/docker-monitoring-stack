@@ -34,7 +34,7 @@ The host environment leverages a multi-core architecture operating via WSL2, pro
 
 ## 3. Deployment Artifacts (Orchestration)
 
-The foundational infrastructure is defined in a unified compose file. **Note:** Loki and Promtail are intentionally pinned to version `2.9.8` to maintain compatibility with the local storage schema (detailed in [Section 5](#5-architectural-challenges--troubleshooting-engineering-log)).
+The foundational infrastructure is defined in a unified compose file. **Note:** Loki and Promtail are intentionally pinned to version `2.9.8` to maintain compatibility with the local storage schema (detailed in [Section 5](#5-architectural-challenges--troubleshooting)).
 
 > All files referenced below live inside the `monitoring-stack/` root directory.
 
@@ -123,6 +123,7 @@ services:
     image: grafana/loki:2.9.8
     container_name: loki
     restart: unless-stopped
+    user: "root"   # Required to write to root-owned loki_data volume (see Discovery 2)
     ports:
       - "3100:3100"
     volumes:
@@ -244,7 +245,7 @@ scrape_configs:
 
 ## 5. Architectural Challenges & Troubleshooting
 
-During the initial deployment phase, a critical container lifecycle failure was detected and resolved.
+During the initial deployment phase, two critical container lifecycle failures were detected and resolved.
 
 ### Discovery 1 — Storage Schema Deprecation in Loki 3.x (Breaking Change)
 
@@ -262,19 +263,21 @@ The original orchestration file specified the `grafana/loki:latest` tag. Docker 
 
 > **Lesson learned:** Avoid `:latest` tags for stateful services with versioned storage schemas. Pin explicit versions and document the rationale in the compose file.
 
-## Discovery 2 — Permission Collision in Loki
+### Discovery 2 — UID/GID Permission Collision on Persistent Volumes
 
-**Issue:** The loki container was stuck in a continuous crash loop
+**Issue:** Shortly after initialization, the Loki container entered a continuous crash loop (status: `Restarting`).
 
-**Analysis:** Diagnostic logs (`docker logs loki`) revealed the following error:
+**Analysis:** Extraction of the container's internal logs (`docker compose logs loki`) revealed a fatal filesystem error:
 
 ```
 mkdir /tmp/loki/rules: permission denied
 ```
 
-A Root Cause Analysis (RCA) identified this as a User Identifier (UID) collision. By default, the Docker engine daemon provisioned the persistent volume (loki_data) with host-level root ownership. 
+A Root Cause Analysis (RCA) identified this as a User Identifier (UID) collision. By default, the Docker engine daemon provisioned the persistent volume (`loki_data`) with host-level `root` ownership. However, following security best practices, the official Grafana Loki image executes as an unprivileged internal user (typically UID `10001`). This unprivileged process lacked the necessary write permissions to create the local indexing and chunk directories inside the root-owned mount.
 
-**Resolution:** Modified the container orchestration strategy to explicitly elevate the runtime privileges of the Loki service for this specific environment. The directive `user: "root"` was injected into the `docker-compose.yml`.
+**Resolution:** Modified the container orchestration strategy to explicitly elevate the runtime privileges of the Loki service for this specific environment. The directive `user: "root"` was injected into the `docker-compose.yml` Loki service definition. This aligned the container's execution context with the volume's host-level ownership, granting full read/write access to the local storage path (`/tmp/loki`) and permanently stabilizing the container lifecycle.
+
+> **Lesson learned:** When persistent volumes are provisioned by the Docker daemon, the container's internal UID must match the mount's ownership — or be elevated — to write successfully. In production, a cleaner fix would be an `initContainer` that `chown`s the volume to the service's unprivileged UID, preserving the principle of least privilege.
 
 ---
 
@@ -305,4 +308,4 @@ ed75e966a175   mysql:8.0                          "docker-entrypoint.s…"   Up 
 
 ## Next Steps
 
-With the infrastructure baseline established, [Phase 2](phase-2-service-configuration.md) will focus on validating the data pipelines end-to-end: confirming that Prometheus is successfully scraping cAdvisor targets, that Promtail is shipping logs into Loki, and that Grafana can query both data sources from a unified interface.
+With the infrastructure baseline established, [Phase 2](phase-2-telemetry-visualization.md) will focus on activating the visualization tier: connecting Grafana to Prometheus as a data source, importing a cAdvisor dashboard, and engineering around the WSL2 virtualization constraints that affect per-container metric granularity.
