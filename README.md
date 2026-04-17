@@ -88,8 +88,8 @@ The lab is structured as a series of documented phases, each building on the pre
 | [Architecture](architecture/stack_architecture.md) | Design stack architecture & component selection | ✅ Complete |
 | [Phase 1](phases/phase-1-environment-setup.md) | Infrastructure Deployment & Zero-Instrumentation Telemetry | ✅ Complete |
 | [Phase 2](phases/phase-2-telemetry-visualization.md) | Telemetry Visualization & WSL2 Architectural Constraints | ✅ Complete |
-| Phase 3 | Log Pipeline Validation & Cross-Source Correlation | 🔄 In progress |
-| Phase 4 | Performance Analysis & Diagnostic Methodology | 🔜 Planned |
+| [Phase 3](phases/phase-3-log-pipeline-correlation.md) | Log Pipeline Validation & Cross-Source Correlation | ✅ Complete |
+| Phase 4 | Performance Analysis & Diagnostic Methodology | 🔄 In progress |
 | Phase 5 | Alert Engineering & Notification Channels | 🔜 Planned |
 | Phase 6 | Stack Hardening & Production Readiness | 🔜 Planned |
 
