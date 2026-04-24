@@ -89,8 +89,8 @@ The lab is structured as a series of documented phases, each building on the pre
 | [Phase 1](phases/phase-1-environment-setup.md) | Infrastructure Deployment & Zero-Instrumentation Telemetry | ✅ Complete |
 | [Phase 2](phases/phase-2-telemetry-visualization.md) | Telemetry Visualization & WSL2 Architectural Constraints | ✅ Complete |
 | [Phase 3](phases/phase-3-log-pipeline-correlation.md) | Log Pipeline Validation & Cross-Source Correlation | ✅ Complete |
-| Phase 4 | Performance Analysis & Diagnostic Methodology | 🔄 In progress |
-| Phase 5 | Alert Engineering & Notification Channels | 🔜 Planned |
+| [Phase 4](./phases/phase-4-performance-analysis.md) | Performance Analysis & Diagnostic Methodology | ✅ Complete |
+| Phase 5 | Alert Engineering & Notification Channels | 🔄 In progress |
 | Phase 6 | Stack Hardening & Production Readiness | 🔜 Planned |
 
 > **Note:** Phases 1–4 document the core observability pipeline. Phases 5–6 are extensions that elevate the project beyond the academic scope into production-readiness.
