@@ -161,4 +161,4 @@ The end-to-end observability pipeline is fully operational. The integration of P
 
 ## Next Steps
 
-With cross-source correlation validated, **Phase 4** will formalize the diagnostic methodology uncovered here into a reusable incident response playbook: documenting the exact step-by-step workflow for common scenarios (high CPU, memory exhaustion, suspicious traffic spikes), including the specific PromQL + LogQL query pair used at each step. This converts tacit investigative knowledge into a repeatable SOC artifact.
+With cross-source correlation validated, [Phase 4](./phase-4-performance-analysis.md) will formalize the diagnostic methodology uncovered here into a reusable incident response playbook: documenting the exact step-by-step workflow for common scenarios (high CPU, memory exhaustion, suspicious traffic spikes), including the specific PromQL + LogQL query pair used at each step. This converts tacit investigative knowledge into a repeatable SOC artifact.
