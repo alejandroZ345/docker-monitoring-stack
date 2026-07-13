@@ -7,7 +7,8 @@
 [![Loki](https://img.shields.io/badge/Loki-2.9.8-2C3239?style=flat-square&logo=grafana&logoColor=white)](#)
 [![Docker Compose](https://img.shields.io/badge/Docker_Compose-Orchestrated-2496ED?style=flat-square&logo=docker&logoColor=white)](#)
 [![Platform](https://img.shields.io/badge/Platform-WSL2%20%2F%20Windows-0078D4?style=flat-square&logo=windows&logoColor=white)](#)
-[![Status](https://img.shields.io/badge/Status-Active%20development-green?style=flat-square)](#)
+[![Status](https://img.shields.io/badge/Status-Core%20Pipeline%20Complete-brightgreen?style=flat-square)](#)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 [![ISC2](https://img.shields.io/badge/Cert-ISC2%20CC-purple?style=flat-square)](#)
 
 ---
@@ -18,7 +19,7 @@ This project documents the deployment and operation of a **production-grade obse
 
 The monitored application is a **WordPress + MySQL** stack, chosen as a realistic web application scenario. On top of it, a full observability layer is deployed: **Prometheus** for metric storage, **cAdvisor** for container metric exposure, **Loki + Promtail** for centralized log management, and **Grafana** as the unified visualization frontend.
 
-The lab is structured as a series of documented phases, each building on the previous one, so that every configuration decision and troubleshooting step is reproducible and auditable.
+The core pipeline — deployment, visualization, and log correlation — is complete and fully reproducible. See [Roadmap](#roadmap) for planned extensions.
 
 ---
 
@@ -89,11 +90,8 @@ The lab is structured as a series of documented phases, each building on the pre
 | [Phase 1](phases/phase-1-environment-setup.md) | Infrastructure Deployment & Zero-Instrumentation Telemetry | ✅ Complete |
 | [Phase 2](phases/phase-2-telemetry-visualization.md) | Telemetry Visualization & WSL2 Architectural Constraints | ✅ Complete |
 | [Phase 3](phases/phase-3-log-pipeline-correlation.md) | Log Pipeline Validation & Cross-Source Correlation | ✅ Complete |
-| [Phase 4](./phases/phase-4-performance-analysis.md) | Performance Analysis & Diagnostic Methodology | ✅ Complete |
-| Phase 5 | Alert Engineering & Notification Channels | 🔄 In progress |
-| Phase 6 | Stack Hardening & Production Readiness | 🔜 Planned |
 
-> **Note:** Phases 1–4 document the core observability pipeline. Phases 5–6 are extensions that elevate the project beyond the academic scope into production-readiness.
+> **Project status:** The core observability pipeline — deployment, visualization, and log correlation — is complete, tested, and fully reproducible via `docker compose up -d`. Alerting and production-hardening are captured as future work in the [Roadmap](#roadmap) below rather than tracked as in-progress phases.
 
 ---
 
@@ -109,7 +107,9 @@ The lab is structured as a series of documented phases, each building on the pre
 
 **WSL2-aware query engineering** — PromQL queries have been adapted to compensate for the cgroup namespace constraints imposed by Docker Desktop on WSL2, demonstrating the ability to deliver reliable telemetry across non-trivial virtualization boundaries.
 
-**Incident diagnosis workflow** — The documentation includes a structured 3-step diagnostic methodology: (1) identify anomalies in Prometheus metrics, (2) correlate with Loki logs in the same time window, (3) determine root cause by cross-referencing both data sources.
+**Cross-source incident correlation** — A synthetic attack scenario (forced 404 enumeration) demonstrates the full SOC diagnostic loop: detecting a metric anomaly in Prometheus, pinpointing the exact time window, and attributing root cause via correlated Loki logs — reducing diagnosis from minutes to seconds.
+
+**Threat-hunting query arsenal** — A reusable set of PromQL and LogQL queries covers common threat scenarios: network exfiltration spikes, compute saturation (cryptojacking), memory exhaustion, and container churn (crash loops / persistence attempts).
 
 ---
 
@@ -137,25 +137,19 @@ The lab is structured as a series of documented phases, each building on the pre
 
 **cAdvisor cgroup blindness on WSL2** — WSL2 encapsulates the Docker daemon inside a lightweight VM, preventing cAdvisor from enumerating individual container cgroups. Per-container labels (`Host`, `Container name`) failed to populate. Resolved by shifting from micro-monitoring to a macro-monitoring strategy, rewriting PromQL queries to target the aggregated root cgroup (`id="/docker"` for CPU/memory, `id="/"` for network) with `sum()` aggregations.
 
+**Cross-source attack attribution** — During a synthetic 404-enumeration attack, isolated metrics alone (an RX spike) provided a symptom but no attribution. Resolved by pairing the Prometheus spike with a time-boxed LogQL query against Loki, using split-screen Explore to identify the exact requesting URI and source IP within the same millisecond window.
+
 ---
 
-## Repository Structure (WIP 🔄)
+## Repository Structure
 
 ```
 docker-monitoring-stack/
 │
 ├── LICENSE
 ├── README.md
-├── SECURITY.md
+├── .gitignore
 ├── docker-compose.yml
-│
-├── .github/
-│   ├── CODE_OF_CONDUCT.md
-│   ├── CONTRIBUTING.md
-│   └── ISSUE_TEMPLATE/
-│       ├── config.yml
-│       ├── bug-report.yml
-│       └── phase-suggestion.yml
 │
 ├── architecture/
 │   └── stack_architecture.md
@@ -165,30 +159,25 @@ docker-monitoring-stack/
 │   │   └── prometheus.yml
 │   ├── loki/
 │   │   └── loki-config.yml
-│   ├── promtail/
-│   │   └── promtail-config.yml
-│   └── grafana/
-│       └── provisioning/
+│   └── promtail/
+│       └── promtail-config.yml
 │
-├── phases/
-│   ├── phase-1-environment-setup.md
-│   └── phase-2-telemetry-visualization.md
-│
-└── docs/
-    ├── troubleshooting.md
-    └── diagnostic-methodology.md
+└── phases/
+    ├── phase-1-environment-setup.md
+    ├── phase-2-telemetry-visualization.md
+    └── phase-3-log-pipeline-correlation.md
 ```
 
 ---
 
 ## Roadmap
 
-- Phase 3: End-to-end validation of the log pipeline (Promtail → Loki → Grafana Explore) with LogQL query examples
-- Phase 4: Performance analysis under synthetic WordPress load + documented diagnostic methodology
-- Phase 5: Prometheus alert rules (`alert.rules.yml`) with notification channels (Slack/email webhooks)
-- Phase 6: Stack hardening — resource limits, Grafana auth, HTTPS reverse proxy, `.env` parameterization
-- Future: Integrate Tempo for distributed tracing (completing the third observability pillar)
-- Future: Add Node Exporter for host-level metrics beyond container scope
+Future work, not currently tracked as in-progress phases:
+
+- **Alert engineering** — Prometheus alert rules (`alert.rules.yml`) with notification channels (Slack/email webhooks), building directly on the PromQL threat-hunting queries from Phase 3.
+- **Stack hardening** — Resource limits, non-default Grafana auth, HTTPS reverse proxy, `.env` parameterization for secrets currently hardcoded in `docker-compose.yml`.
+- **Distributed tracing** — Integrate Tempo to complete the third pillar of observability alongside metrics and logs.
+- **Host-level metrics** — Add Node Exporter for host telemetry beyond container scope.
 
 ---
 
@@ -221,3 +210,5 @@ docker compose ps
 **Alejandro Zavala** — Systems Engineer & Cybersecurity Professional
 ISC2 Certified in Cybersecurity (CC) · Specialization: SOC Operations, Infrastructure Monitoring, Technical Documentation
 [linkedin.com/in/alejandro-zavala-zenteno](https://www.linkedin.com/in/alejandro-zavala-zenteno) · [ISC2 Badge](https://www.credly.com/badges/fe6eeefe-d684-45fa-8f57-9f7d025db2d6/public_url)
+
+Related project: [wazuh-soc-homelab](https://github.com/alejandroZ345/wazuh-soc-homelab) — enterprise SIEM/XDR platform with Wazuh + TheHive.
