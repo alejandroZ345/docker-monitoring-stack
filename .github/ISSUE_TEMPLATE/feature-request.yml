@@ -1,0 +1,32 @@
+name: Feature Suggestion
+description: Suggest a roadmap item or a new monitoring capability.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: What kind of suggestion is this?
+      options:
+        - Relates to an existing Roadmap item (alerting, hardening, tracing, host metrics)
+        - A new capability not currently on the Roadmap
+        - Documentation improvement
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What would you like to add or change?
+      placeholder: Describe the capability, tool, or documentation improvement.
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: Why is this valuable?
+      placeholder: What problem does it solve, or what visibility/capability does it add?
+  - type: textarea
+    id: approach
+    attributes:
+      label: Suggested approach
+      placeholder: Any specific tools, exporters, or configuration changes you have in mind?

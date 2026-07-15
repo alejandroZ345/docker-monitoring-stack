@@ -9,6 +9,7 @@
 [![Platform](https://img.shields.io/badge/Platform-WSL2%20%2F%20Windows-0078D4?style=flat-square&logo=windows&logoColor=white)](#)
 [![Status](https://img.shields.io/badge/Status-Core%20Pipeline%20Complete-brightgreen?style=flat-square)](#)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa?style=flat-square)](.github/CODE_OF_CONDUCT.md)
 [![ISC2](https://img.shields.io/badge/Cert-ISC2%20CC-purple?style=flat-square)](#)
 
 ---
@@ -151,6 +152,16 @@ docker-monitoring-stack/
 ├── .gitignore
 ├── docker-compose.yml
 │
+├── .github/
+│   ├── CODE_OF_CONDUCT.md
+│   ├── CONTRIBUTING.md
+│   ├── SECURITY.md
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── ISSUE_TEMPLATE/
+│       ├── config.yml
+│       ├── bug-report.yml
+│       └── feature-request.yml
+│
 ├── architecture/
 │   └── stack_architecture.md
 │
@@ -202,6 +213,12 @@ docker compose ps
 ```
 
 > For the full setup walkthrough, start with [Phase 1](phases/phase-1-environment-setup.md).
+
+---
+
+## Contributing
+
+Contributions are welcome — bug reports, configuration fixes, documentation improvements, or suggestions tied to the [Roadmap](#roadmap) above. Please read the [Contributing Guide](.github/CONTRIBUTING.md) and [Code of Conduct](.github/CODE_OF_CONDUCT.md) before opening an issue or pull request. Security issues should be reported privately per the [Security Policy](.github/SECURITY.md) rather than as a public issue.
 
 ---
 

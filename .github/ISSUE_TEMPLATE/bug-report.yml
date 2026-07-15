@@ -1,0 +1,45 @@
+name: Bug Report
+description: Report a configuration error, broken deployment, or documentation mismatch.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area is affected?
+      options:
+        - Architecture doc
+        - Phase 1 — Infrastructure Deployment
+        - Phase 2 — Telemetry Visualization
+        - Phase 3 — Log Pipeline Correlation
+        - Configuration files (config/)
+        - docker-compose.yml
+        - Other / General
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the issue
+      placeholder: What happened? What did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Ran `docker compose up -d`
+        2. ...
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or error messages
+      render: shell
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "e.g., Windows 11 + WSL2 Ubuntu 24.04, Docker Desktop 4.x, Docker Compose v2.x"
+    validations:
+      required: true
